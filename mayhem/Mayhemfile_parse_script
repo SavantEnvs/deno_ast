@@ -1,0 +1,18 @@
+# NEW sibling target: fuzzes deno_ast::parse_script (forced Script grammar, non-strict-mode
+# constructs like `with` allowed, import/export disallowed) with MediaType::JavaScript.
+project: savantenvs/deno_ast
+target: parse_script
+
+# NOTE: server-tar slug hard-coded to savantenvs/deno-ast, NOT $MAYHEM_PROJECT.
+# mcode-action passes --project savantenvs/deno_ast (from the GitHub repo name), overriding the
+# Mayhemfile, so \$MAYHEM_PROJECT expands to the un-normalized 'deno_ast' while Mayhem's real slug
+# is 'deno-ast' (it maps _ -> -). Using \$MAYHEM_PROJECT gives 'You do not have access to use a
+# test suite from the project deno_ast' and the run never starts.
+testsuite:
+  - https://$MAYHEM_DOMAIN/savantenvs/deno-ast/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/parse_script/testsuite
+
+cmds:
+  - cmd: /mayhem/parse_script
+    libfuzzer: true
+    dictionary: /mayhem/parse_script.dict
