@@ -1,0 +1,18 @@
+# Preserved legacy target (mayhemheroes original name: parse_module). Fuzzes
+# deno_ast::parse_module (always Module grammar) over TypeScript source via libFuzzer.
+project: savantenvs/deno_ast
+target: parse_module
+
+# NOTE: server-tar slug hard-coded to savantenvs/deno-ast, NOT $MAYHEM_PROJECT.
+# mcode-action passes --project savantenvs/deno_ast (from the GitHub repo name), overriding the
+# Mayhemfile, so \$MAYHEM_PROJECT expands to the un-normalized 'deno_ast' while Mayhem's real slug
+# is 'deno-ast' (it maps _ -> -). Using \$MAYHEM_PROJECT gives 'You do not have access to use a
+# test suite from the project deno_ast' and the run never starts.
+testsuite:
+  - https://$MAYHEM_DOMAIN/savantenvs/deno-ast/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/parse_module/testsuite
+
+cmds:
+  - cmd: /mayhem/parse_module
+    libfuzzer: true
+    dictionary: /mayhem/parse_module.dict

@@ -1,0 +1,45 @@
+[package]
+name = "deno_ast-mayhem-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.deno_ast]
+path = "../.."
+
+# Deliberately its OWN workspace root (empty members list below), even though it lives
+# inside the deno_ast repo tree. deno_ast's upstream root Cargo.toml (never edited) has NO
+# [workspace] table at all — it is a plain single-package crate — and upstream's OWN `fuzz/`
+# crate at the repo root already claims workspace-root-of-one status via its own
+# `[workspace] members = ["."]`. This mayhem/fuzz crate is a SEPARATE, ADDITIVE cargo-fuzz
+# crate (preserves the legacy `parse_module` harness + two new sibling targets) and must not
+# be swept into any ambient workspace, so it declares the same "stop the upward walk here"
+# empty-members table. Confirmed empirically (cargo-fuzz writes to mayhem/fuzz/target/, not
+# the repo root target/ or upstream fuzz/target/) — see mayhem/build.sh.
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "parse_module"
+path = "fuzz_targets/parse_module.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "parse_program_tsx"
+path = "fuzz_targets/parse_program_tsx.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "parse_script"
+path = "fuzz_targets/parse_script.rs"
+test = false
+doc = false

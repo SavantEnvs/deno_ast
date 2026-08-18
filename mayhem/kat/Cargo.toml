@@ -1,0 +1,34 @@
+[workspace]
+# Deliberately empty — this makes `mayhem/kat` its OWN workspace root, decoupled from the
+# upstream root Cargo.toml (which has NO [workspace] table at all — deno_ast is a plain
+# single-package crate) and from upstream's own root `fuzz/` crate (which claims
+# workspace-root-of-one status via its own `[workspace] members = ["."]`). We must not modify
+# any upstream file to make this crate buildable; this file is entirely additive under mayhem/.
+
+[package]
+name = "mayhem-kat"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+# Known-answer-test probe for mayhem/test.sh (SPEC §6.3 anti-reward-hacking).
+#
+# WHY A SEPARATE BINARY: `cargo test` links deno_ast's own suite into `--test` harness
+# binaries whose libtest runner executes every #[test] in-process from one entrypoint — a
+# process-wide sabotage `_exit(0)` looks identical to "the test binary produced no output",
+# which is indistinguishable from a build failure and easy to reward-hack around (see
+# docs/netnew-worker-prompt.md §4: "cargo test alone" is an explicitly forbidden oracle). This
+# crate is a normal `[[bin]]` with a plain `fn main()`, built with a normal `cargo build` (no
+# sanitizer instrumentation — a functional oracle, not a triage artifact) and DYNAMICALLY
+# linked against glibc (Rust's default for a std binary on this target — build.sh asserts
+# this with `file`), so the sabotage shim's LD_PRELOAD constructor reaches it. It parses a
+# handful of FIXED TS/TSX/JS sources through deno_ast's public parse_module/parse_program/
+# parse_script entry points and prints the exact computed values; mayhem/test.sh grep -qxF's
+# each line exactly.
+
+[dependencies]
+deno_ast = { path = "../.." }
+
+[[bin]]
+name = "kat"
+path = "src/main.rs"
